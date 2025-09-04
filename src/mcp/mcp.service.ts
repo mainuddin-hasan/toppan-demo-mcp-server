@@ -6,46 +6,7 @@ import { ToolsService } from '../tools/tools.service.js';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
-import { jobs_context } from './table-contexts/jobs_context.js';
 import { TableContext } from './table-contexts/index.js';
-import { emailFilesContext } from './table-contexts/email_files.context.js';
-import { emailRepliesContext } from './table-contexts/email_replies.context.js';
-import { usersContext } from './table-contexts/users.context.js';
-import { ruleDetailsContext } from './table-contexts/rule_details.context.js';
-import { ruleTemplatesContext } from './table-contexts/rule_templates.context.js';
-import { plansContext } from './table-contexts/plans.context.js';
-import { tasksContext } from './table-contexts/tasks.context.js';
-import { jobRulesContext } from './table-contexts/job_rules.context.js';
-import { costSummaryRulesContext } from './table-contexts/cost_summary_rules.context.js';
-import { billableItemsContext } from './table-contexts/billable_items.context.js';
-import { jobActivityContext } from './table-contexts/job_activity.context.js';
-import { jobActivityLogsContext } from './table-contexts/job_activity_logs.context.js';
-import { conditionsContext } from './table-contexts/conditions.context.js';
-import { costSummaryRulesTaskListTasksContext } from './table-contexts/cost_summary_rules_task_list_tasks.context.js';
-import { orderCostSummaryRulesContext } from './table-contexts/order_cost_summary_rules.context.js';
-import { packageCostSummaryRulesContext } from './table-contexts/package_cost_summary_rules.context.js';
-import { packagesContext } from './table-contexts/packages.context.js';
-import { pricingContext } from './table-contexts/pricing.context.js';
-import { additionalCostSummaryRulesContext } from './table-contexts/additional_cost_summary_rules.context.js';
-import { externalCostSummariesContext } from './table-contexts/external_cost_summaries.context.js';
-import { aiModelsContext } from './table-contexts/ai_models.context.js';
-import { aiModelVersionsContext } from './table-contexts/ai_model_versions.context.js';
-import { aiModelVersionChangeHistoryContext } from './table-contexts/ai_model_version_change_history.context.js';
-import { clientViewContext } from './table-contexts/client_view.context.js';
-import { rolesContext } from './table-contexts/roles.context.js';
-import { userRequestsContext } from './table-contexts/user_requests.context.js';
-import { userRolesContext } from './table-contexts/user_roles.context.js';
-import { tccAttachmentsContext } from './table-contexts/tcc_attachments.context.js';
-import { tccJobSalesPersonsContext } from './table-contexts/tcc_job_sales_persons.context.js';
-import { tccLanguagesContext } from './table-contexts/tcc_languages.context.js';
-import { tccMasterDataContext } from './table-contexts/tcc_master_data.context.js';
-import { tccProjectsContext } from './table-contexts/tcc_projects.context.js';
-import { tccSyncDetailsContext } from './table-contexts/tcc_sync_details.context.js';
-import { tccTranslationTasksContext } from './table-contexts/tcc_translation_tasks.context.js';
-import { tccTypeSettingsTasksContext } from './table-contexts/tcc_type_settings_tasks.context.js';
-import { tccUsersContext } from './table-contexts/tcc_users.context.js';
-import { taskTypesContext } from './table-contexts/task_types.context.js';
-import { subTaskTypesContext } from './table-contexts/sub_task_types.context.js';
 
 
 @Injectable()
@@ -296,54 +257,26 @@ export class McpService {
     }
   }
 
+  // Utility: Extract relevant table names from prompt
+  private extractTableNamesFromPrompt(prompt: string): string[] {
+    // List of all table names (keys from contextMap)
+    const allTableNames = [
+      'emails', 'jobs', 'email_files', 'email_replies', 'users', 'rule_details', 'rule_templates', 'plans', 'tasks', 'job_rules', 'cost_summary_rules', 'billable_items', 'job_activity', 'job_activity_logs', 'conditions', 'cost_summary_rule_tasks', 'cost_summary_rules_task_list_tasks', 'order_cost_summary_rules', 'package_cost_summary_rules', 'packages', 'pricing', 'additional_cost_summary_rules', 'external_cost_summaries', 'ai_models', 'ai_model_versions', 'ai_model_version_change_history', 'client_view', 'roles', 'user_requests', 'user_roles', 'tcc_attachments', 'tcc_job_sales_persons', 'tcc_languages', 'tcc_master_data', 'tcc_projects', 'tcc_sync_details', 'tcc_task_attachments', 'tcc_translation_tasks', 'tcc_type_settings_tasks', 'tcc_users', 'task_types', 'sub_task_types',
+    ];
+    // Simple keyword-based detection (case-insensitive)
+    const lowerPrompt = prompt.toLowerCase();
+    return allTableNames.filter(table => lowerPrompt.includes(table.replace(/_/g, '')) || lowerPrompt.includes(table.replace(/_/g, ' ')) || lowerPrompt.includes(table));
+  }
+
   private async sendPromptToLLM(
     prompt: string,
-    tools: any[], // Adjust type as needed, e.g., ToolDescription[]
+    tools: any[],
   ) {
-    // Provide ALL table contexts by default
-    const allTableNames = [
-      'emails',
-      'jobs',
-      'email_files',
-      'email_replies',
-      'users',
-      'rule_details',
-      'rule_templates',
-      'plans',
-      'tasks',
-      'job_rules',
-      'cost_summary_rules',
-      'billable_items',
-      'job_activity',
-      'job_activity_logs',
-      'conditions',
-      'cost_summary_rule_tasks',
-      'cost_summary_rules_task_list_tasks',
-      'order_cost_summary_rules',
-      'package_cost_summary_rules',
-      'packages',
-      'pricing',
-      'additional_cost_summary_rules',
-      'external_cost_summaries',
-      'ai_models',
-      'ai_model_versions',
-      'ai_model_version_change_history',
-      'client_view',
-      'roles',
-      'user_requests',
-      'user_roles',
-      'tcc_attachments',
-      'tcc_job_sales_persons',
-      'tcc_languages',
-      'tcc_master_data',
-      'tcc_projects',
-      'tcc_sync_details',
-      'tcc_task_attachments',
-      'tcc_translation_tasks',
-      'tcc_type_settings_tasks',
-      'tcc_users',
-      'task_types',
-      'sub_task_types',
+    // Dynamic context selection: only send relevant table schemas
+    const relevantTableNames = this.extractTableNamesFromPrompt(prompt);
+    // Fallback: if none detected, send all
+    const tableNamesToSend = relevantTableNames.length ? relevantTableNames : [
+      'emails', 'jobs', 'email_files', 'email_replies', 'users', 'rule_details', 'rule_templates', 'plans', 'tasks', 'job_rules', 'cost_summary_rules', 'billable_items', 'job_activity', 'job_activity_logs', 'conditions', 'cost_summary_rule_tasks', 'cost_summary_rules_task_list_tasks', 'order_cost_summary_rules', 'package_cost_summary_rules', 'packages', 'pricing', 'additional_cost_summary_rules', 'external_cost_summaries', 'ai_models', 'ai_model_versions', 'ai_model_version_change_history', 'client_view', 'roles', 'user_requests', 'user_roles', 'tcc_attachments', 'tcc_job_sales_persons', 'tcc_languages', 'tcc_master_data', 'tcc_projects', 'tcc_sync_details', 'tcc_task_attachments', 'tcc_translation_tasks', 'tcc_type_settings_tasks', 'tcc_users', 'task_types', 'sub_task_types',
     ];
     return await firstValueFrom(
       this.httpService.post('http://192.168.68.121:11434/api/chat', {
@@ -351,7 +284,7 @@ export class McpService {
         messages: [
           {
             role: 'system',
-            content: this.getTableContexts(allTableNames),
+            content: this.getTableContexts(tableNamesToSend),
           },
           { role: 'user', content: prompt },
         ],
@@ -450,48 +383,49 @@ export class McpService {
   // Utility to get context for required tables
   private getTableContexts(tableNames: string[]): string {
     const contextMap: Record<string, string> = {
-      emails: TableContext.emailContext,
-      jobs: jobs_context,
-      email_files: emailFilesContext,
-      email_replies: emailRepliesContext,
-      users: usersContext,
-      rule_details: ruleDetailsContext,
-      rule_templates: ruleTemplatesContext,
-      plans: plansContext,
-      tasks: tasksContext,
-      job_rules: jobRulesContext,
-      cost_summary_rules: costSummaryRulesContext,
-      billable_items: billableItemsContext,
-      job_activity: jobActivityContext,
-      job_activity_logs: jobActivityLogsContext,
-      conditions: conditionsContext,
-      cost_summary_rule_tasks: costSummaryRulesContext,
-      cost_summary_rules_task_list_tasks: costSummaryRulesTaskListTasksContext,
-      order_cost_summary_rules: orderCostSummaryRulesContext,
-      package_cost_summary_rules: packageCostSummaryRulesContext,
-      packages: packagesContext,
-      pricing: pricingContext,
-      additional_cost_summary_rules: additionalCostSummaryRulesContext,
-      external_cost_summaries: externalCostSummariesContext,
-      ai_models: aiModelsContext,
-      ai_model_versions: aiModelVersionsContext,
-      ai_model_version_change_history: aiModelVersionChangeHistoryContext,
-      client_view: clientViewContext,
-      roles: rolesContext,
-      user_requests: userRequestsContext,
-      user_roles: userRolesContext,
-      tcc_attachments: tccAttachmentsContext,
-      tcc_job_sales_persons: tccJobSalesPersonsContext,
-      tcc_languages: tccLanguagesContext,
-      tcc_master_data: tccMasterDataContext,
-      tcc_projects: tccProjectsContext,
-      tcc_sync_details: tccSyncDetailsContext,
-      tcc_task_attachments: tccAttachmentsContext,
-      tcc_translation_tasks: tccTranslationTasksContext,
-      tcc_type_settings_tasks: tccTypeSettingsTasksContext,
-      tcc_users: tccUsersContext,
-      task_types: taskTypesContext,
-      sub_task_types: subTaskTypesContext,
+      emails: TableContext.emailsContext,
+      jobs: TableContext.jobsContext,
+      email_files: TableContext.emailFilesContext,
+      email_replies: TableContext.emailRepliesContext,
+      users: TableContext.usersContext,
+      rule_details: TableContext.ruleDetailsContext,
+      rule_templates: TableContext.ruleTemplatesContext,
+      plans: TableContext.plansContext,
+      tasks: TableContext.tasksContext,
+      job_rules: TableContext.jobRulesContext,
+      jobContext: TableContext.jobsContext,
+      cost_summary_rules: TableContext.costSummaryRulesContext,
+      billable_items: TableContext.billableItemsContext,
+      job_activity: TableContext.jobActivityContext,
+      job_activity_logs: TableContext.jobActivityLogsContext,
+      conditions: TableContext.conditionsContext,
+      cost_summary_rule_tasks: TableContext.costSummaryRuleTasksContext,
+      cost_summary_rules_task_list_tasks: TableContext.costSummaryRulesTaskListTasksContext,
+      order_cost_summary_rules: TableContext.orderCostSummaryRulesContext,
+      package_cost_summary_rules: TableContext.packageCostSummaryRulesContext,
+      packages: TableContext.packagesContext,
+      pricing: TableContext.pricingContext,
+      additional_cost_summary_rules: TableContext.additionalCostSummaryRulesContext,
+      external_cost_summaries: TableContext.externalCostSummariesContext,
+      ai_models: TableContext.aiModelsContext,
+      ai_model_versions: TableContext.aiModelVersionsContext,
+      ai_model_version_change_history: TableContext.aiModelVersionChangeHistoryContext,
+      client_view: TableContext.clientViewContext,
+      roles: TableContext.rolesContext,
+      user_requests: TableContext.userRequestsContext,
+      user_roles: TableContext.userRolesContext,
+      tcc_attachments: TableContext.tccAttachmentsContext,
+      tcc_job_sales_persons: TableContext.tccJobSalesPersonsContext,
+      tcc_languages: TableContext.tccLanguagesContext,
+      tcc_master_data: TableContext.tccMasterDataContext,
+      tcc_projects: TableContext.tccProjectsContext,
+      tcc_sync_details: TableContext.tccSyncDetailsContext,
+      tcc_task_attachments: TableContext.tccTaskAttachmentsContext,
+      tcc_translation_tasks: TableContext.tccTranslationTasksContext,
+      tcc_type_settings_tasks: TableContext.tccTypeSettingsTasksContext,
+      tcc_users: TableContext.tccUsersContext,
+      task_types: TableContext.taskTypesContext,
+      sub_task_types: TableContext.subTaskTypesContext,
     };
     return tableNames.map(t => contextMap[t]).filter(Boolean).join('\n');
   }
