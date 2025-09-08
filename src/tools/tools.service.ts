@@ -84,9 +84,20 @@ export class ToolsService {
         }
       }
 
-      // Filter out null or undefined values
+      // Filter out null or undefined values and clean up the parameters
       if (Array.isArray(params)) {
-        params = params.filter((item) => item !== null && item !== undefined).map((item) => item.trim());
+        params = params
+          .filter((item) => item !== null && item !== undefined)
+          .map((item) => {
+            // Convert to string and trim
+            let cleaned = String(item).trim();
+            // Remove brackets if the entire parameter is wrapped in brackets
+            if (cleaned.startsWith('[') && cleaned.endsWith(']')) {
+              cleaned = cleaned.slice(1, -1).trim();
+            }
+            return cleaned;
+          })
+          .filter(item => item !== ''); // Remove empty strings
       } else {
         params = [];
       }

@@ -279,7 +279,7 @@ export class McpService {
       'emails', 'jobs', 'email_files', 'email_replies', 'users', 'rule_details', 'rule_templates', 'plans', 'tasks', 'job_rules', 'cost_summary_rules', 'billable_items', 'job_activity', 'job_activity_logs', 'conditions', 'cost_summary_rule_tasks', 'cost_summary_rules_task_list_tasks', 'order_cost_summary_rules', 'package_cost_summary_rules', 'packages', 'pricing', 'additional_cost_summary_rules', 'external_cost_summaries', 'ai_models', 'ai_model_versions', 'ai_model_version_change_history', 'client_view', 'roles', 'user_requests', 'user_roles', 'tcc_attachments', 'tcc_job_sales_persons', 'tcc_languages', 'tcc_master_data', 'tcc_projects', 'tcc_sync_details', 'tcc_task_attachments', 'tcc_translation_tasks', 'tcc_type_settings_tasks', 'tcc_users', 'task_types', 'sub_task_types',
     ];
     return await firstValueFrom(
-      this.httpService.post('http://192.168.68.121:11434/api/chat', {
+      this.httpService.post('http://192.168.68.150:11434/api/chat', {
         model: 'llama3.1',
         messages: [
           {
@@ -294,35 +294,6 @@ export class McpService {
     );
   }
 
-  // private async sendPromptToLLM(prompt: string, tools: any[]): Promise<any> {
-  //   const context = `Context: The following is a list of user-created PostgreSQL table names from my current database schema. These are the core business/domain tables, excluding system-generated sequences or internal system tables.
-  //                    Postgres Tables: additional, additional_cost_summary_rules, ai_model_version_change_history, ai_model_versions, ai_models, billable_items, client_view, conditions, cost_summary_rule_tasks, cost_summary_rules, email, email_file_change_details, email_files, email_job_mappers, email_replies, email_tags, emails, external_cost_summaries, internal_views, job, job_activity, job_activity_logs, job_rule_conditions, job_rules, jobs, order_cost_summary_rules, others, package_cost_summary_rules, packages, plans, pricing, roles, rule_detail, rule_details, rule_template, rule_templates, sub_task_types, task_types, tasks, tcc_attachments, tcc_job_sales_persons, tcc_languages, tcc_master_data, tcc_projects, tcc_sync_details, tcc_task_attachments, tcc_translation_tasks, tcc_type_settings_tasks, tcc_users, user_requests, user_roles, users.`;
-  //
-  //   const requestBody = {
-  //     contents: [
-  //       {
-  //         parts: [
-  //           {
-  //             text: `${context}\n\n${prompt}`,
-  //           },
-  //         ],
-  //       },
-  //     ],
-  //   };
-  //
-  //   const GEMINI_API_KEY = 'GMN Secret'; // Replace with env var in production
-  //   const GEMINI_ENDPOINT =
-  //     'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
-  //
-  //   return await firstValueFrom(
-  //     this.httpService.post(GEMINI_ENDPOINT, requestBody, {
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         'X-goog-api-key': GEMINI_API_KEY,
-  //       },
-  //     }),
-  //   );
-  // }
 
   private getTools() {
     return [
@@ -364,7 +335,7 @@ export class McpService {
   async sendTextToLLM(prompt: string) {
     try {
       const response = await firstValueFrom(
-        this.httpService.post('http://192.168.10.28:11434/api/chat', {
+        this.httpService.post('http://192.168.68.150:11434/api/chat', {
           model: 'llama3',
           messages: [{ role: 'user', content: prompt }],
           stream: false,
