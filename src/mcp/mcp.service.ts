@@ -243,13 +243,27 @@ export class McpService {
       };
     } catch (error) {
       console.error('Error querying LLM:', error);
+      // Improved error message for LLM response
       return {
         success: false,
         data: {
           result: null,
           details: { prompt },
         },
-        message: 'Failed to query LLM',
+        message:
+          'Failed to query LLM. Please ensure your prompt is clear and that the LLM system prompt provides explicit instructions for tool usage and output format. If the LLM is not returning expected tool_calls or data, review and enhance the system prompt to guide the LLM to: ' +
+          '\n- Always use available tools/functions for database or business logic queries.' +
+          '\n- Never fabricate data or structure.' +
+          '\n- Respond in JSON with tool_calls when a tool is needed, or a direct answer if not.' +
+          '\n- Be concise and accurate.' +
+          '\n\nExample system prompt:' +
+          '\n\nYou are an AI assistant for a NestJS backend.' +
+          '\n- Always use available tools/functions (like executeRawQuery) to answer user queries that require database access.' +
+          '\n- Do not fabricate data or structure.' +
+          '\n- If a user asks for data, generate the correct SQL and call the appropriate tool.' +
+          '\n- Respond in JSON format with tool_calls when a tool is needed.' +
+          '\n- If the query is conversational, use simple_reply.' +
+          '\n- Example: User: "Give me the emails count." Response: {"tool_calls":[{"function":{"name":"executeRawQuery","arguments":{"sql":"SELECT COUNT(*) FROM emails","params":[]}}}]}' ,
         toolName: 'llm_query',
         timestamp: new Date().toISOString(),
         error: error.message || error.toString(),
@@ -279,12 +293,12 @@ export class McpService {
       'emails', 'jobs', 'email_files', 'email_replies', 'users', 'rule_details', 'rule_templates', 'plans', 'tasks', 'job_rules', 'cost_summary_rules', 'billable_items', 'job_activity', 'job_activity_logs', 'conditions', 'cost_summary_rule_tasks', 'cost_summary_rules_task_list_tasks', 'order_cost_summary_rules', 'package_cost_summary_rules', 'packages', 'pricing', 'additional_cost_summary_rules', 'external_cost_summaries', 'ai_models', 'ai_model_versions', 'ai_model_version_change_history', 'client_view', 'roles', 'user_requests', 'user_roles', 'tcc_attachments', 'tcc_job_sales_persons', 'tcc_languages', 'tcc_master_data', 'tcc_projects', 'tcc_sync_details', 'tcc_task_attachments', 'tcc_translation_tasks', 'tcc_type_settings_tasks', 'tcc_users', 'task_types', 'sub_task_types',
     ];
     return await firstValueFrom(
-      this.httpService.post('http://192.168.68.150:11434/api/chat', {
+      this.httpService.post('http://192.168.10.48:11434/api/chat', {
         model: 'llama3.1',
         messages: [
           {
             role: 'system',
-            content: this.getTableContexts(tableNamesToSend),
+            content: this.getSystemPrompt() + '\n' + this.getTableContexts(tableNamesToSend),
           },
           { role: 'user', content: prompt },
         ],
@@ -335,7 +349,7 @@ export class McpService {
   async sendTextToLLM(prompt: string) {
     try {
       const response = await firstValueFrom(
-        this.httpService.post('http://192.168.68.150:11434/api/chat', {
+        this.httpService.post('http://192.168.10.48:11434/api/chat', {
           model: 'llama3',
           messages: [{ role: 'user', content: prompt }],
           stream: false,
@@ -399,5 +413,18 @@ export class McpService {
       sub_task_types: TableContext.subTaskTypesContext,
     };
     return tableNames.map(t => contextMap[t]).filter(Boolean).join('\n');
+  }
+
+  private getSystemPrompt(): string {
+    return [
+      'You are an AI assistant for a NestJS backend.',
+      '- Always use available tools/functions (like executeRawQuery) to answer user queries that require database access.',
+      '- Do not fabricate data or structure.',
+      '- If a user asks for data, generate the correct SQL and call the appropriate tool.',
+      '- Respond in JSON format with tool_calls when a tool is needed.',
+      '- If the query is conversational, use simple_reply.',
+      '- When generating SQL for PostgreSQL, always use positional parameters ($1, $2, ...) instead of named parameters (like :jobId).',
+      '- Example: User: "Give me the emails count." Response: {"tool_calls":[{"function":{"name":"executeRawQuery","arguments":{"sql":"SELECT COUNT(*) FROM emails","params":[]}}}]}'
+    ].join('\n');
   }
 }
