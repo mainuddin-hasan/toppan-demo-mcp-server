@@ -251,20 +251,19 @@ export class McpService {
           details: { prompt },
         },
         message:
-          'Failed to query LLM. Please ensure your prompt is clear and that the LLM system prompt provides explicit instructions for tool usage and output format. If the LLM is not returning expected tool_calls or data, review and enhance the system prompt to guide the LLM to: ' +
-          '\n- Always use available tools/functions for database or business logic queries.' +
-          '\n- Never fabricate data or structure.' +
-          '\n- Respond in JSON with tool_calls when a tool is needed, or a direct answer if not.' +
-          '\n- Be concise and accurate.' +
-          '\n\nExample system prompt:' +
-          '\n\nYou are an AI assistant for a NestJS backend.' +
-          '\n- Always use available tools/functions (like executeRawQuery) to answer user queries that require database access.' +
-          '\n- Do not fabricate data or structure.' +
-          '\n- If a user asks for data, generate the correct SQL and call the appropriate tool.' +
-          '\n- Respond in JSON format with tool_calls when a tool is needed.' +
-          '\n- If the query is conversational, use simple_reply.' +
-          '\n- Example: User: "Give me the emails count." Response: {"tool_calls":[{"function":{"name":"executeRawQuery","arguments":{"sql":"SELECT COUNT(*) FROM emails","params":[]}}}]}' ,
-        toolName: 'llm_query',
+          'Failed to query LLM. Please ensure your prompt is clear and that the LLM system prompt provides explicit instructions for tool usage and output format. If the LLM is not returning expected tool_calls or data, review and enhance the system prompt to guide the LLM to:\n' +
+          '- Always use available tools/functions for database or business logic queries.\n' +
+          '- Never fabricate data or structure.\n' +
+          '- Respond in JSON with tool_calls when a tool is needed, or a direct answer if not.\n' +
+          '- Be concise and accurate.\n' +
+          '\nExample system prompt (set this as your LLM system prompt, and avoid duplicating it elsewhere):\n' +
+          'You are an AI assistant for a NestJS backend.\n' +
+          '- Always use available tools/functions (like executeRawQuery) to answer user queries that require database access.\n' +
+          '- Do not fabricate data or structure.\n' +
+          '- If a user asks for data, generate the correct SQL and call the appropriate tool.\n' +
+          '- Respond in JSON format with tool_calls when a tool is needed.\n' +
+          '- If the query is conversational, use simple_reply.\n' +
+          '- Example: For emails count use executeRawQuery with SQL "SELECT COUNT(*) FROM emails" and empty params array.',
         timestamp: new Date().toISOString(),
         error: error.message || error.toString(),
       };
@@ -424,7 +423,7 @@ export class McpService {
       '- Respond in JSON format with tool_calls when a tool is needed.',
       '- If the query is conversational, use simple_reply.',
       '- When generating SQL for PostgreSQL, always use positional parameters ($1, $2, ...) instead of named parameters (like :jobId).',
-      '- Example: User: "Give me the emails count." Response: {"tool_calls":[{"function":{"name":"executeRawQuery","arguments":{"sql":"SELECT COUNT(*) FROM emails","params":[]}}}]}'
+      '- Example: For "Give me the emails count" use executeRawQuery with SQL "SELECT COUNT(*) FROM emails" and empty params array.'
     ].join('\n');
   }
 }
