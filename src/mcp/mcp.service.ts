@@ -106,18 +106,18 @@ export class McpService {
 
         switch (name) {
           case 'simple_reply':
-            toolResponse = this.toolsService.simpleReply(args.message as string);
+            toolResponse = await this.toolsService.simpleReply(args.message as string);
             break;
 
           case 'sum':
-            toolResponse = this.toolsService.sum({
+            toolResponse = await this.toolsService.sum({
               a: args.a as number,
               b: args.b as number,
             });
             break;
 
           case 'sub':
-            toolResponse = this.toolsService.sub({
+            toolResponse = await this.toolsService.sub({
               a: args.a as number,
               b: args.b as number,
             });
@@ -191,13 +191,13 @@ export class McpService {
 
           if (toolCall.function.name === 'simple_reply') {
             const { message } = toolCall.function.arguments;
-            toolResponse = this.toolsService.simpleReply(message);
+            toolResponse = await this.toolsService.simpleReply(message);
           } else if (toolCall.function.name === 'sum') {
             const { a, b } = toolCall.function.arguments;
-            toolResponse = this.toolsService.sum({ a, b });
+            toolResponse = await this.toolsService.sum({ a, b });
           } else if (toolCall.function.name === 'sub') {
             const { a, b } = toolCall.function.arguments;
-            toolResponse = this.toolsService.sub({ a, b });
+            toolResponse = await this.toolsService.sub({ a, b });
           } else if (toolCall.function.name === 'executeRawQuery') {
             const { sql, params } = toolCall.function.arguments;
             toolResponse = await this.toolsService.executeRawQuery(sql, params);
