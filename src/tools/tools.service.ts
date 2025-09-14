@@ -167,10 +167,12 @@ export class ToolsService {
       }
 
       // Phase 4: Execute the validated and sanitized query
+      // Use the corrected SQL and params from structure validation
+      const { sql: finalSql, params: finalParams } = structureValidation.sanitizedValue;
       let index = 0;
-      const converted = sanitizedSql.replace(/\?/g, () => `$${++index}`);
+      const converted = finalSql.replace(/\?/g, () => `$${++index}`);
 
-      const result = await this.dataSource.query(converted, sanitizedParams);
+      const result = await this.dataSource.query(converted, finalParams);
 
       return {
         success: true,

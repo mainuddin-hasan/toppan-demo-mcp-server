@@ -176,6 +176,15 @@ export class ParameterValidator {
       return { isValid: false, errors: ['Parameters must be an array'], sanitizedValue: [] };
     }
 
+    // If params is [""] (single empty string), treat as empty array
+    if (params.length === 1 && params[0] === "") {
+      return {
+        isValid: true,
+        errors: [],
+        sanitizedValue: []
+      };
+    }
+
     for (let i = 0; i < params.length; i++) {
       const param = params[i];
       
@@ -261,15 +270,26 @@ export class QueryStructureValidator {
 
     // Check parameter placeholder count vs actual parameters
     const placeholderMatches = sql.match(/\$\d+|\?/g);
-    const placeholderCount = placeholderMatches ? placeholderMatches.length : 0;
+    const expectedParamCount = placeholderMatches ? placeholderMatches.length : 0;
 
-    if (placeholderCount !== params.length) {
-      errors.push(`Parameter count mismatch: expected ${placeholderCount}, got ${params.length}`);
+    if (expectedParamCount === 0 && params.length > 0) {
+      // Query has no placeholders but parameters were provided
+      // This is acceptable - we'll just ignore the extra parameters
+      return {
+        isValid: true,
+        errors: [],
+        sanitizedValue: { sql, params: [] } // Return empty params array
+      };
+    }
+
+    if (expectedParamCount > 0 && params.length !== expectedParamCount) {
+      errors.push(`Parameter count mismatch: expected ${expectedParamCount}, got ${params.length}`);
     }
 
     return {
       isValid: errors.length === 0,
-      errors
+      errors,
+      sanitizedValue: { sql, params }
     };
   }
 }
